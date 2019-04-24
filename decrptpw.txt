@@ -1,0 +1,70 @@
+class Program
+    {
+        static void Main(string[] args)
+        {
+
+            //DataTable dt = ExtractFromTable("select action_url, username_element, username_value, password_element, password_value from logins;");
+
+            DataTable dt = ExtractFromTable("select * from preferences;");
+
+
+            foreach (DataRow dr in dt.Rows)
+            {
+
+                string url = dr["action_url"].ToString();
+
+                if (url == "https://www.hulu.com/tv/new/episodes")
+                {
+                    string username = dr["username_value"].ToString();
+                    byte[] password = (byte[])dr["password_value"];
+
+                    byte[] unprotected = System.Security.Cryptography.ProtectedData.Unprotect(password, null, System.Security.Cryptography.DataProtectionScope.CurrentUser);
+
+                    string result = Encoding.UTF8.GetString(unprotected);
+
+                }
+
+                
+
+            }
+        }
+
+
+
+
+
+
+
+
+        public static DataTable ExtractFromTable(string query)
+        {
+            SQLiteConnection sql_con;
+            //SQLiteCommand sql_cmd;
+            SQLiteDataAdapter DB;
+            DataTable DT = new DataTable();
+
+            // Chrome database file
+            string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Preferences - Copy.db");
+
+            // If file exists
+            if (File.Exists(dbPath))
+            {
+                string connectionString = "Data Source=" + dbPath + ";Version=3;New=False;Compress=True;";
+
+                using (sql_con = new SQLiteConnection(connectionString))
+                {
+                    // Select Query
+                    string CommandText = query;
+
+                    // Populate Data Table
+                    using (DB = new SQLiteDataAdapter(CommandText, sql_con))
+                    {
+                        DB.Fill(DT);
+                    }
+                }
+
+            }
+
+            return DT;
+        }
+    }
